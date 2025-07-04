@@ -1,3 +1,4 @@
+import streamlit as st
 import os
 from agents import Agent, AsyncOpenAI, OpenAIChatCompletionsModel, Runner, RunContextWrapper
 from agents.tool import function_tool
@@ -26,6 +27,17 @@ run_config = RunConfig(
     tracing_disabled=True,
 )
 
+class UserSessionContext(BaseModel):
+    name: str
+    uid: int
+    goal: Optional[dict] = None
+    diet_preferences: Optional[str] = None
+    workout_plan: Optional[dict] = None
+    meal_plan: Optional[List[str]] = None
+    injury_notes: Optional[str] = None
+    handoff_logs: List[str] = []
+    progress_logs: List[Dict[str, str]] = []
+
 @function_tool
 def GoalAnalyzerTool() -> str:
     return "Converts the user's goals into a structured format."
@@ -46,41 +58,34 @@ def CheckinSchedulerTool() -> str:
 def ProgressTrackerTool() -> str:
     return "Logs and updates the user's progress."
 
+@function_tool
+def InjuryAdviceTool() -> str:
+    return "Avoid weight-bearing exercises. Focus on upper body workouts."
+
+@function_tool
+def DiabeticDietTip() -> str:
+    return "Low-carb, high-fiber meals recommended. Avoid sugary foods."
+
 first_agent = Agent(
     name="EscalationAgent",
     instructions="When the user wants to talk to a real human trainer.",
+    tools=[],
     handoff_description="Escalating your request to a human trainer as per your preference."
 )
 
 second_agent = Agent(
     name="NutritionExpertAgent",
-    instructions="When the user has complex diet issues like diabetes or food allergies.",
-    handoff_description="This request requires specialized nutritional advice. Handing off to a qualified expert."
+    instructions="Provide advice for users with dietary conditions like diabetes.",
+    tools=[DiabeticDietTip],
+    handoff_description="This request requires specialized nutritional advice."
 )
 
 third_agent = Agent(
     name="InjurySupportAgent",
-    instructions="When the user has an injury or a physical issue.",
-    handoff_description="This case involves a physical concern. Forwarding to a medical support expert for further help."
+    instructions="Help users with injuries by giving special fitness advice.",
+    tools=[InjuryAdviceTool],
+    handoff_description="This case involves a physical concern."
 )
-
-class UserSessionContext(BaseModel):
-    name: str
-    uid: int
-    goal: Optional[dict] = None
-    diet_preferences: Optional[str] = None
-    workout_plan: Optional[dict] = None
-    meal_plan: Optional[List[str]] = None
-    injury_notes: Optional[str] = None
-    handoff_logs: List[str] = []
-    progress_logs: List[Dict[str, str]] = []
-
-context = UserSessionContext(
-    name="TestUser",
-    uid=123
-)
-
-wrapped_context = RunContextWrapper(context)
 
 triage_agent = Agent(
     name="triage_agent",
@@ -90,16 +95,27 @@ triage_agent = Agent(
         MealPlannerTool,
         WorkoutRecommenderTool,
         CheckinSchedulerTool,
-        ProgressTrackerTool,
+        ProgressTrackerTool
     ],
     handoffs=[first_agent, second_agent, third_agent]
 )
 
-result = Runner.run_sync(
-    triage_agent,
-    input="I'm 45 years old, I have type 2 diabetes, and recently injured my ankle. I want a weight loss plan tailored to my condition. Can you suggest a customized workout and diet?",
-    context=wrapped_context,
-    run_config=run_config
-)
+st.set_page_config(page_title="Neuro Bot", layout="centered")
+st.title("🧠 Neuro Bot")
 
-print(result.final_output)
+user_input = st.text_area("Enter your health goal:", height=150)
+
+if st.button("Submit") and user_input:
+    with st.spinner("Analyzing your health goals..."):
+        user_context = UserSessionContext(name="User", uid=1)
+        context_wrapper = RunContextWrapper(user_context)
+
+        result = Runner.run_sync(
+            agent=triage_agent,
+            input=user_input,
+            context=context_wrapper,
+            config=run_config
+        )
+
+        st.markdown("### 🩺 AI Response:")
+        st.success(result.final_output)
