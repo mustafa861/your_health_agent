@@ -49,18 +49,18 @@ def ProgressTrackerTool() -> str:
 first_agent = Agent(
     name="EscalationAgent",
     instructions="When the user wants to talk to a real human trainer.",
-    handoff_description="Escalating your request to a human trainer as per your preference."
+    handoff_description="Escalating your request to a human trainer as per your preference.and when traige agent say you you also give me answer"
 )
 
 second_agent = Agent(
     name="NutritionExpertAgent",
-    instructions="When the user has complex diet issues like diabetes or food allergies.",
+    instructions="When the user has complex diet issues like diabetes or food allergies. and when traige agent say you you also give me answer",
     handoff_description="This request requires specialized nutritional advice. Handing off to a qualified expert."
 )
 
 third_agent = Agent(
     name="InjurySupportAgent",
-    instructions="When the user has an injury or a physical issue.",
+    instructions="When the user has an injury or a physical issue. and when traige agent say you you also give me answer",
     handoff_description="This case involves a physical concern. Forwarding to a medical support expert for further help."
 )
 
@@ -84,7 +84,7 @@ wrapped_context = RunContextWrapper(context)
 
 triage_agent = Agent(
     name="triage_agent",
-    instructions="You are a health and wellness assistant. You analyze goals, provide plans, and hand off to specialists if needed.",
+    instructions="you are a health agent and you help the patient and where you are confuse you can handoff the agent and say them that theycan give me answer and you can use tool",
     tools=[
         GoalAnalyzerTool,
         MealPlannerTool,
@@ -97,7 +97,7 @@ triage_agent = Agent(
 
 result = Runner.run_sync(
     triage_agent,
-    input="I'm 45 years old, I have type 2 diabetes, and recently injured my ankle. I want a weight loss plan tailored to my condition. Can you suggest a customized workout and diet?",
+    input="I'm 45 years old, I have type 2 diabetes, and recently injured my ankle. I want a weight loss plan tailored to my condition. Can you suggest a customized workout and diet? yes i like that you transfer to speacilist",
     context=wrapped_context,
     run_config=run_config
 )
