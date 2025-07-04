@@ -65,7 +65,7 @@ third_agent=Agent(
 
 triage_agent = Agent(
     name="triage_agent",
-    instructions="You have the power to delegate tasks to other agents.",
+    instructions="You have the power to delegate tasks to other agents and they give me answer.",
     handoffs=[first_agent, second_agent, third_agent]
 )
 
