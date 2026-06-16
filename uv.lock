@@ -969,8 +969,16 @@ dependencies = [
     { name = "streamlit" },
 ]
 
+[package.dev-dependencies]
+dev = [
+    { name = "mcp" },
+]
+
 [package.metadata]
 requires-dist = [
     { name = "openai-agents", specifier = ">=0.1.0" },
     { name = "streamlit", specifier = ">=1.46.1" },
 ]
+
+[package.metadata.requires-dev]
+dev = [{ name = "mcp" }]

@@ -8,3 +8,8 @@ dependencies = [
     "openai-agents>=0.1.0",
     "streamlit>=1.46.1",
 ]
+
+[dependency-groups]
+dev = [
+    "mcp",
+]
